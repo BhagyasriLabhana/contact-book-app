@@ -13,7 +13,7 @@ function App() {
 
   const fetchContacts = useCallback(async (pageNumber = page) => {
     try {
-      const res = await fetch(`https://contact-book-syl9.onrender.com/contacts?page=${pageNumber}&limit=${limit}`);
+      const res = await fetch(`http://localhost:5000/contacts?page=${pageNumber}&limit=${limit}`);
       const data = await res.json();
       setContacts(data.contactsArray);
       setTotal(data.total);
