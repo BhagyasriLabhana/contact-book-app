@@ -1,11 +1,11 @@
 const express = require("express");
 const path = require("path");
-const cors =  require("cors");
+const cors = require("cors");
 const { open } = require("sqlite");
 const sqlite3 = require("sqlite3");
 
 const app = express();
-app.use(express.json()); 
+app.use(express.json());
 app.use(cors());
 
 const dbPath = path.join(__dirname, "contacts.db");
@@ -13,10 +13,7 @@ let db = null;
 
 const initializeDBAndServer = async () => {
   try {
-    db = await open({
-      filename: dbPath,
-      driver: sqlite3.Database,
-    });
+    db = await open({ filename: dbPath, driver: sqlite3.Database });
     await db.exec(`
       CREATE TABLE IF NOT EXISTS contacts (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -26,103 +23,64 @@ const initializeDBAndServer = async () => {
       )
     `);
 
-    app.listen(5000, () => {
-      console.log("Server Running at http://localhost:5000/");
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => {
+      console.log(`Server Running at http://localhost:${PORT}/`);
     });
   } catch (e) {
-    console.log(`DB Error: ${e.message}`);
+    console.error(`DB Error: ${e.message}`);
     process.exit(1);
   }
 };
 
 initializeDBAndServer();
 
-// API Endpoints
-
-//Creating Contacts API
-
-app.post("/contacts", async (request, response) => {
+// POST Contact
+app.post("/contacts", async (req, res) => {
   try {
-    const { name, email, phone } = request.body;
-
-    // Validate required fields
+    const { name, email, phone } = req.body;
     if (!name || !email || !phone) {
-      return response.status(400).json({ error: "Name, email, and phone are required" });
+      return res.status(400).json({ error: "Name, email, and phone are required" });
     }
 
-    // Check if email already exists
-    const existingContact = await db.get(
-      `SELECT * FROM contacts WHERE email = ?`,
-      [email]
+    const existingContact = await db.get(`SELECT * FROM contacts WHERE email = ?`, [email]);
+    if (existingContact) return res.status(400).json({ error: "Email already exists" });
+
+    const dbResponse = await db.run(
+      `INSERT INTO contacts (name, email, phone) VALUES (?, ?, ?)`,
+      [name, email, phone]
     );
 
-    if (existingContact) {
-      return response.status(400).json({ error: "Email already exists" });
-    }
-
-    const insertQuery = `
-      INSERT INTO contacts (name, email, phone)
-      VALUES (?, ?, ?)
-    `;
-    const dbResponse = await db.run(insertQuery, [name, email, phone]);
-
-    const contactId = dbResponse.lastID;
-
-    response.status(201).json({
-      id: contactId,
-      name,
-      email,
-      phone,
-    });
+    res.status(201).json({ id: dbResponse.lastID, name, email, phone });
   } catch (e) {
-    response.status(500).json({ error: e.message });
+    res.status(500).json({ error: e.message });
   }
 });
 
-
-// Get Contact API
-
-app.get("/contacts",async(request,response)=>{
-  try{
-  let {page=1,limit=10} = request.query;
-  page = parseInt(page);
-  limit = parseInt(limit);
-
-  const offset = (page-1)*limit;
-
-  const getContactsQuery = `
-    SELECT * FROM contacts
-    LIMIT ${limit} OFFSET ${offset};
-  `;
-
-  const contactsArray = await db.all(getContactsQuery);
-  const totalQuery = `SELECT COUNT(*) AS total FROM contacts;`;
-  const totalResult = await db.get(totalQuery);
-  const {total} = totalResult;
-  response.json({total,contactsArray});
-  }
-  catch(e){
-    response.status(500).send(e.message);
-  }
-})
-
-app.delete("/contacts/:id", async (request, response) => {
+// GET Contacts
+app.get("/contacts", async (req, res) => {
   try {
-    const { id } = request.params;
+    let { page = 1, limit = 10 } = req.query;
+    page = parseInt(page);
+    limit = parseInt(limit);
+    const offset = (page - 1) * limit;
 
-    const deleteContactQuery = `
-      DELETE FROM contacts WHERE id = ${id};
-    `;
-
-    const dbResponse = await db.run(deleteContactQuery);
-
-    if (dbResponse.changes === 0) {
-      return response.status(404).send(`Contact with id ${id} not found`);
-    }
-
-    response.send(`Contact ${id} deleted successfully`);
+    const contactsArray = await db.all(`SELECT * FROM contacts LIMIT ? OFFSET ?`, [limit, offset]);
+    const totalResult = await db.get(`SELECT COUNT(*) AS total FROM contacts`);
+    res.json({ total: totalResult.total, contactsArray });
   } catch (e) {
-    response.status(500).send(e.message);
+    res.status(500).send(e.message);
   }
 });
 
+// DELETE Contact
+app.delete("/contacts/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const dbResponse = await db.run(`DELETE FROM contacts WHERE id = ?`, [id]);
+    if (dbResponse.changes === 0) return res.status(404).send(`Contact with id ${id} not found`);
+    res.send(`Contact ${id} deleted successfully`);
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
