@@ -1,0 +1,26 @@
+.modal-content input {
+  width: 100%;
+  padding: 6px 8px; /* smaller padding */
+  margin-bottom: 8px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+  font-size: 0.9rem; /* slightly smaller font */
+}
+
+/* Mobile-specific adjustments */
+@media (max-width: 480px) {
+  .modal-content {
+    padding: 15px;
+  }
+
+  .modal-content input {
+    padding: 5px 6px; /* even smaller padding on mobile */
+    font-size: 0.85rem;
+  }
+
+  .modal-buttons button {
+    padding: 8px;
+    font-size: 0.9rem;
+  }
+}

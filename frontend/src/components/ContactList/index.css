@@ -1,0 +1,60 @@
+.contact-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.contact-table th,
+.contact-table td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+.contact-table th {
+  background-color: #f2f2f2;
+}
+
+.contact-table tr:hover {
+  background-color: #f1f1f1;
+}
+
+.contact-table button {
+  padding: 5px 10px;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.contact-table button:hover {
+  background-color: #d32f2f;
+}
+
+@media (max-width: 600px) {
+  .contact-table, .contact-table thead, .contact-table tbody, .contact-table th, .contact-table td, .contact-table tr {
+    display: block;
+  }
+
+  .contact-table th {
+    display: none;
+  }
+
+  .contact-table td {
+    position: relative;
+    padding-left: 50%;
+    margin-bottom: 10px;
+  }
+
+  .contact-table td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 10px;
+    font-weight: bold;
+  }
+}
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 20px;
+}
