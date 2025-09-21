@@ -5,12 +5,23 @@ const { open } = require("sqlite");
 const sqlite3 = require("sqlite3");
 
 const app = express();
+
+// Middleware
 app.use(express.json());
-app.use(cors());
+
+// Allow CORS from your frontend domain
+app.use(
+  cors({
+    origin: "https://contact-book-app-xi.vercel.app", // replace with your frontend URL
+    methods: ["GET", "POST", "DELETE"],
+    allowedHeaders: ["Content-Type"],
+  })
+);
 
 const dbPath = path.join(__dirname, "contacts.db");
 let db = null;
 
+// Initialize database and server
 const initializeDBAndServer = async () => {
   try {
     db = await open({ filename: dbPath, driver: sqlite3.Database });
@@ -25,7 +36,7 @@ const initializeDBAndServer = async () => {
 
     const PORT = process.env.PORT || 5000;
     app.listen(PORT, () => {
-      console.log(`Server Running at http://localhost:${PORT}/`);
+      console.log(`Server running at https://contact-book-syl9.onrender.com`);
     });
   } catch (e) {
     console.error(`DB Error: ${e.message}`);
@@ -35,7 +46,7 @@ const initializeDBAndServer = async () => {
 
 initializeDBAndServer();
 
-// POST Contact
+// POST /contacts - Add a contact
 app.post("/contacts", async (req, res) => {
   try {
     const { name, email, phone } = req.body;
@@ -57,7 +68,7 @@ app.post("/contacts", async (req, res) => {
   }
 });
 
-// GET Contacts
+// GET /contacts - Get contacts with pagination
 app.get("/contacts", async (req, res) => {
   try {
     let { page = 1, limit = 10 } = req.query;
@@ -69,18 +80,18 @@ app.get("/contacts", async (req, res) => {
     const totalResult = await db.get(`SELECT COUNT(*) AS total FROM contacts`);
     res.json({ total: totalResult.total, contactsArray });
   } catch (e) {
-    res.status(500).send(e.message);
+    res.status(500).json({ error: e.message });
   }
 });
 
-// DELETE Contact
+// DELETE /contacts/:id - Delete a contact
 app.delete("/contacts/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const dbResponse = await db.run(`DELETE FROM contacts WHERE id = ?`, [id]);
-    if (dbResponse.changes === 0) return res.status(404).send(`Contact with id ${id} not found`);
-    res.send(`Contact ${id} deleted successfully`);
+    if (dbResponse.changes === 0) return res.status(404).json({ error: `Contact with id ${id} not found` });
+    res.json({ message: `Contact ${id} deleted successfully` });
   } catch (e) {
-    res.status(500).send(e.message);
+    res.status(500).json({ error: e.message });
   }
 });
