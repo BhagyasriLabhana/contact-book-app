@@ -6,13 +6,12 @@ const sqlite3 = require("sqlite3");
 
 const app = express();
 
-// Middleware
 app.use(express.json());
 
-// Allow CORS from your frontend domain
+
 app.use(
   cors({
-    origin: "https://contact-book-app-xi.vercel.app", // replace with your frontend URL
+    origin: "https://contact-book-app-xi.vercel.app/", 
     methods: ["GET", "POST", "DELETE"],
     allowedHeaders: ["Content-Type"],
   })
@@ -21,7 +20,7 @@ app.use(
 const dbPath = path.join(__dirname, "contacts.db");
 let db = null;
 
-// Initialize database and server
+
 const initializeDBAndServer = async () => {
   try {
     db = await open({ filename: dbPath, driver: sqlite3.Database });
@@ -46,7 +45,7 @@ const initializeDBAndServer = async () => {
 
 initializeDBAndServer();
 
-// POST /contacts - Add a contact
+
 app.post("/contacts", async (req, res) => {
   try {
     const { name, email, phone } = req.body;
@@ -68,7 +67,7 @@ app.post("/contacts", async (req, res) => {
   }
 });
 
-// GET /contacts - Get contacts with pagination
+
 app.get("/contacts", async (req, res) => {
   try {
     let { page = 1, limit = 10 } = req.query;
@@ -84,7 +83,7 @@ app.get("/contacts", async (req, res) => {
   }
 });
 
-// DELETE /contacts/:id - Delete a contact
+
 app.delete("/contacts/:id", async (req, res) => {
   try {
     const { id } = req.params;
