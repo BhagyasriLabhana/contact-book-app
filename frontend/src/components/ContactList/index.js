@@ -7,7 +7,7 @@ function ContactList({ contacts, fetchContacts }) {
       if (!window.confirm("Are you sure you want to delete this contact?")) return;
 
       try {
-        await fetch(`http://localhost:5000/contacts/${id}`, { method: "DELETE" });
+        await fetch(`https://contact-book-syl9.onrender.com/contacts/${id}`, { method: "DELETE" });
         fetchContacts(); // refresh contacts
       } catch (err) {
         console.error("Error deleting contact:", err);
